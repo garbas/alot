@@ -122,8 +122,7 @@ class TestComposeCommand(unittest.TestCase):
         self.assertFalse(envelope.sign)
         self.assertIs(envelope.sign_key, None)
 
-    @utilities.async_test
-    async def test_decode_template_on_loading(self):
+    def test_decode_template_on_loading(self):
         subject = u'This is a täßϑ subject.'
         to = u'recipient@mail.com'
         _from = u'foo.bar@mail.fr'
@@ -135,15 +134,8 @@ class TestComposeCommand(unittest.TestCase):
         self.addCleanup(os.unlink, f.name)
 
         cmd = g_commands.ComposeCommand(template=f.name)
-
-        # Crutch to exit the giant `apply` method early.
-        with mock.patch(
-                'alot.commands.globals.settings.get_account_by_address',
-                mock.Mock(side_effect=Stop)):
-            try:
-                await cmd.apply(mock.Mock())
-            except Stop:
-                pass
+        cmd._set_envelope()
+        cmd._get_template(mock.Mock())
 
         self.assertEqual({'To': [to],
                           'From': [_from],
